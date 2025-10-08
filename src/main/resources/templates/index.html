@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Binance Todo Cron</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>📊 Binance Price Records</h1>
+
+<div class="form-container">
+    <form action="/add" method="post" style="display:inline;">
+        <input type="text" name="symbol" placeholder="VD: BTCUSDT" required>
+        <button type="submit">Fetch</button>
+    </form>
+
+    <form action="/reloadandupdate" method="get" style="display:inline;">
+        <button type="submit" style="background-color:#27ae60;">Reload</button>
+    </form>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Symbol</th>
+        <th>Price</th>
+        <th>Fetched At</th>
+    </tr>
+    </thead>
+    <tbody id="priceBody">
+    <tr th:each="record : ${prices}">
+        <td th:text="${record.symbol}"></td>
+        <td th:text="${record.price}"></td>
+        <td th:text="${#temporals.format(record.fetchedAt, 'dd/MM/yyyy HH:mm:ss')}"></td>
+    </tr>
+    </tbody>
+</table>
+
+
+<p id="status" style="text-align: center;"></p>
+
+<script>
+    let stompClient = null;
+
+    function connect() {
+        let socket = new SockJS('/ws'); // endpoint BE config
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe('/topic/prices', function (message) {
+                let data = JSON.parse(message.body);
+                let tbody = document.getElementById("priceBody");
+                tbody.innerHTML = "";
+
+                let html = "";
+                if (Array.isArray(data)) {
+                    data.forEach(record => {
+                        html += buildRow(record);
+                    });
+                } else {
+                    html = buildRow(data);
+                }
+                tbody.innerHTML = html;
+            });
+        }, function (error) {
+            console.error("❌ Connection error:", error);
+        });
+
+    }
+
+    function updateTable(data) {
+        let tbody = document.getElementById("priceBody");
+        tbody.innerHTML += buildRow(data);
+    }
+
+    // Hàm build row cho 1 record
+    function buildRow(record) {
+        // xử lý fetchedAt → thành Date object
+        let dt;
+        if (Array.isArray(record.fetchedAt)) {
+            dt = new Date(
+                record.fetchedAt[0],   // year
+                record.fetchedAt[1] - 1, // month (0-based)
+                record.fetchedAt[2],   // day
+                record.fetchedAt[3],   // hour
+                record.fetchedAt[4],   // minute
+                record.fetchedAt[5]    // second
+            );
+        } else {
+            dt = new Date(record.fetchedAt);
+        }
+        let formatted = dt.toLocaleDateString("vi-VN") + " " + dt.toLocaleTimeString("vi-VN");
+
+        // format price
+        let price = parseFloat(String(record.price).replace(/,/g, ""))
+            .toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 6});
+
+        return `<tr>
+        <td>${record.symbol}</td>
+        <td>${price}</td>
+        <td>${formatted}</td>
+    </tr>`;
+    }
+
+
+    connect();
+</script>
+
+</body>
+</html>

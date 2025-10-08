@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Binance Alpha Cron</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>📊 Binance Alpha Price Records</h1>
+
+<div class="form-container">
+    <form style="display:inline;">
+        <input type="text" id="searchBox" onkeyup="searchToken()" name="symbol" placeholder="VD: LYN" required>
+    </form>
+
+    <form action="/alpha" method="get" style="display:inline;">
+        <button type="submit" style="background-color:#27ae60; color:white;">Reload</button>
+    </form>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Icon</th>
+        <th onclick="sortTable(1, 'string')">Symbol ⬍</th>
+        <th onclick="sortTable(2, 'string')">Name ⬍</th>
+        <th onclick="sortTable(3, 'string')">Chain ⬍</th>
+        <th onclick="sortTable(4, 'number')">Price ⬍</th>
+        <th onclick="sortTable(5, 'number')">% Change ⬍</th>
+        <th onclick="sortTable(6, 'string')">Fetched At ⬍</th>
+    </tr>
+    </thead>
+    <tbody id="priceBody">
+    <tr th:each="record : ${prices}">
+        <td><img th:src="'data:image/png;base64,' + ${record.iconImage}" class="token-icon"/></td>
+        <td th:text="${record.symbol}"></td>
+        <td th:text="${record.name}"></td>
+        <td th:text="${record.chainName}"></td>
+        <td style="color:black; font-weight:bold;" th:text="${#numbers.formatDecimal(record.price, 1, 6)}"></td>
+        <td th:text="${record.percentChange24h}"
+            th:classappend="${record.percentChange24h != null and record.percentChange24h > 0} ? 'positive' :'negative' ">
+        </td>
+        <td th:text="${#temporals.format(record.fetchedAt, 'dd/MM/yyyy HH:mm:ss')}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<script>
+    function searchToken() {
+        let input = document.getElementById("searchBox").value.toLowerCase();
+        let rows = document.querySelectorAll("#priceBody tr");
+
+        rows.forEach(row => {
+            let symbol = row.cells[1].textContent.toLowerCase();
+            let name = row.cells[2].textContent.toLowerCase();
+            let chain = row.cells[3].textContent.toLowerCase();
+            if (symbol.includes(input) || name.includes(input) || chain.includes(input)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    let sortDirections = {};
+    function sortTable(colIndex, type) {
+        let table = document.getElementById("priceBody");
+        let rows = Array.from(table.querySelectorAll("tr"));
+        let dir = sortDirections[colIndex] === "asc" ? "desc" : "asc";
+        sortDirections[colIndex] = dir;
+
+        rows.sort((a, b) => {
+            let valA = a.cells[colIndex].textContent.trim();
+            let valB = b.cells[colIndex].textContent.trim();
+
+            if (type === "number") {
+                valA = parseFloat(valA.replace(/,/g, "")) || 0;
+                valB = parseFloat(valB.replace(/,/g, "")) || 0;
+            } else {
+                valA = valA.toLowerCase();
+                valB = valB.toLowerCase();
+            }
+
+            if (valA < valB) return dir === "asc" ? -1 : 1;
+            if (valA > valB) return dir === "asc" ? 1 : -1;
+            return 0;
+        });
+
+        // update lại tbody
+        table.innerHTML = "";
+        rows.forEach(r => table.appendChild(r));
+    }
+
+
+    connect();
+</script>
+
+</body>
+</html>
