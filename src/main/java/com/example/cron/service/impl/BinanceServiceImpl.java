@@ -43,7 +43,7 @@ public class BinanceServiceImpl implements BinanceService {
         for (String symbol : symbols) {
             try {
                 String url = "https://api.binance.com/api/v3/ticker/price?symbol=" + symbol.toUpperCase();
-                var response = restTemplate.getForObject(url, BinanceResponse.class);
+                BinanceResponse response = restTemplate.getForObject(url, BinanceResponse.class);
 
                 if (response != null) {
                     BinanceRecord record = new BinanceRecord(
