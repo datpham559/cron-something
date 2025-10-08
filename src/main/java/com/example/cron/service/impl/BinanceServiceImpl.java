@@ -47,12 +47,12 @@ public class BinanceServiceImpl implements BinanceService {
 
                 if (response != null) {
                     BinanceRecord record = new BinanceRecord(
-                            response.symbol(),
-                            getFormattedPrice(response.price()),
+                            response.getSymbol(),
+                            getFormattedPrice(response.getPrice()),
                             LocalDateTime.now()
                     );
                     // nếu muốn update thay vì add thì check ở đây
-                    records.removeIf(r -> r.getSymbol().equalsIgnoreCase(response.symbol()));
+                    records.removeIf(r -> r.getSymbol().equalsIgnoreCase(response.getSymbol()));
                     records.add(record);
                     records.stream().sorted();
                     results.add(record);
@@ -71,7 +71,25 @@ public class BinanceServiceImpl implements BinanceService {
     }
 
     // record type cho JSON parse
-    private record BinanceResponse(String symbol, String price) {
+    private class BinanceResponse {
+        private String symbol;
+        private String price;
+
+        public String getSymbol() {
+            return symbol;
+        }
+
+        public void setSymbol(String symbol) {
+            this.symbol = symbol;
+        }
+
+        public String getPrice() {
+            return price;
+        }
+
+        public void setPrice(String price) {
+            this.price = price;
+        }
     }
 
     public String getFormattedPrice(String price) {

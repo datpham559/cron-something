@@ -13,7 +13,27 @@ public class BinanceRecord {
         this.fetchedAt = fetchedAt;
     }
 
-    public String getSymbol() { return symbol; }
-    public String getPrice() { return price; }
-    public LocalDateTime getFetchedAt() { return fetchedAt; }
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public String getPrice() {
+        return price;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+
+    public LocalDateTime getFetchedAt() {
+        return fetchedAt;
+    }
+
+    public void setFetchedAt(LocalDateTime fetchedAt) {
+        this.fetchedAt = fetchedAt;
+    }
 }
