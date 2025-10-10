@@ -48,10 +48,11 @@ public class BinanceController {
         List<TokenInfoDTO> tokens = binanceService.allAlpha();
         if (!Strings.isEmpty(symbol) && !Strings.isBlank(symbol)) {
             symbol = symbol.toLowerCase();
+            String finalSymbol = symbol;
             tokens = tokens.stream()
-                    .filter(t -> (t.getSymbol() != null && t.getSymbol().toLowerCase().contains(symbol))
-                            || (t.getName() != null && t.getName().toLowerCase().contains(symbol))
-                            || (t.getChainName() != null && t.getChainName().toLowerCase().contains(symbol)))
+                    .filter(t -> (t.getSymbol() != null && t.getSymbol().toLowerCase().contains(finalSymbol))
+                            || (t.getName() != null && t.getName().toLowerCase().contains(finalSymbol))
+                            || (t.getChainName() != null && t.getChainName().toLowerCase().contains(finalSymbol)))
                     .collect(Collectors.toList());
         }
         model.addAttribute("prices", tokens);
