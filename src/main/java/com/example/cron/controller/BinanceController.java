@@ -47,6 +47,7 @@ public class BinanceController {
     public String allAlpha(Model model, @RequestParam(required = false) String symbol) {
         List<TokenInfoDTO> tokens = binanceService.allAlpha();
         if (!Strings.isEmpty(symbol) && !Strings.isBlank(symbol)) {
+            symbol = symbol.toLowerCase();
             tokens = tokens.stream()
                     .filter(t -> (t.getSymbol() != null && t.getSymbol().toLowerCase().contains(symbol))
                             || (t.getName() != null && t.getName().toLowerCase().contains(symbol))
