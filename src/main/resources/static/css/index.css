@@ -81,3 +81,11 @@ tr:hover {
     color: red;
     font-weight: bold;
 }
+.unit-input {
+    width: 80px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    text-align: right;
+    outline: none;
+}

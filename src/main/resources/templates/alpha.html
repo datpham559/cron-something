@@ -10,11 +10,12 @@
 <h1>📊 Binance Alpha Price Records</h1>
 
 <div class="form-container">
-    <form style="display:inline;">
-        <input type="text" id="searchBox" onkeyup="searchToken()" name="symbol" placeholder="VD: LYN" required>
-    </form>
+    <!--    <form style="display:inline;">-->
+    <!--        <input type="text" id="searchBox" onkeyup="searchToken()" name="symbol" placeholder="VD: LYN" required>-->
+    <!--    </form>-->
 
-    <form action="/alpha" method="get" style="display:inline;">
+    <form action="/alpha" method="get" style="display:inline;" onsubmit="saveSearch()">
+        <input type="text" id="searchBox" name="symbol" placeholder="VD: LYN">
         <button type="submit" style="background-color:#27ae60; color:white;">Reload</button>
     </form>
 </div>
@@ -27,6 +28,8 @@
         <th onclick="sortTable(2, 'string')">Name ⬍</th>
         <th onclick="sortTable(3, 'string')">Chain ⬍</th>
         <th onclick="sortTable(4, 'number')">Price ⬍</th>
+        <th onclick="sortTable(4, 'number')">Unit</th>
+        <th onclick="sortTable(4, 'number')">Total</th>
         <th onclick="sortTable(5, 'number')">% Change ⬍</th>
         <th onclick="sortTable(6, 'string')">Fetched At ⬍</th>
     </tr>
@@ -38,6 +41,11 @@
         <td th:text="${record.name}"></td>
         <td th:text="${record.chainName}"></td>
         <td style="color:black; font-weight:bold;" th:text="${#numbers.formatDecimal(record.price, 1, 6)}"></td>
+        <td>
+            <input type="text" class="unit-input"
+                   oninput="updateTotal(this)" style="width:80px;">
+        </td>
+        <td class="total-cell">0</td>
         <td th:text="${record.percentChange24h}"
             th:classappend="${record.percentChange24h != null and record.percentChange24h > 0} ? 'positive' :'negative' ">
         </td>
@@ -47,23 +55,25 @@
 </table>
 
 <script>
-    function searchToken() {
-        let input = document.getElementById("searchBox").value.toLowerCase();
-        let rows = document.querySelectorAll("#priceBody tr");
-
-        rows.forEach(row => {
-            let symbol = row.cells[1].textContent.toLowerCase();
-            let name = row.cells[2].textContent.toLowerCase();
-            let chain = row.cells[3].textContent.toLowerCase();
-            if (symbol.includes(input) || name.includes(input) || chain.includes(input)) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
-        });
-    }
-
     let sortDirections = {};
+    let search = '';
+
+    // function searchToken() {
+    //     let input = document.getElementById("searchBox").value.toLowerCase();
+    //     let rows = document.querySelectorAll("#priceBody tr");
+    //
+    //     rows.forEach(row => {
+    //         let symbol = row.cells[1].textContent.toLowerCase();
+    //         let name = row.cells[2].textContent.toLowerCase();
+    //         let chain = row.cells[3].textContent.toLowerCase();
+    //         if (symbol.includes(input) || name.includes(input) || chain.includes(input)) {
+    //             row.style.display = "";
+    //         } else {
+    //             row.style.display = "none";
+    //         }
+    //     });
+    // }
+
     function sortTable(colIndex, type) {
         let table = document.getElementById("priceBody");
         let rows = Array.from(table.querySelectorAll("tr"));
@@ -90,6 +100,28 @@
         // update lại tbody
         table.innerHTML = "";
         rows.forEach(r => table.appendChild(r));
+    }
+
+    function updateTotal(input) {
+        let row = input.closest("tr");
+        let priceCell = row.cells[4]; // cột Price
+        let totalCell = row.querySelector(".total-cell");
+
+        // xử lý dấu , thành .
+        let rawPrice = priceCell.textContent.trim().replace(/\./g, "").replace(",", ".");
+        let price = parseFloat(rawPrice) || 0;
+        let unit = parseFloat(input.value) || 0;
+
+        let total = price * unit;
+        totalCell.textContent = total.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function saveSearch() {
+        // Lưu search hiện tại vào localStorage trước khi reload
+        localStorage.setItem('search', document.getElementById("searchBox").value);
     }
 
 
