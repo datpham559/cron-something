@@ -124,6 +124,12 @@
         localStorage.setItem('search', document.getElementById("searchBox").value);
     }
 
+    window.onload = function () {
+        let saved = localStorage.getItem('search');
+        if (saved) {
+            document.getElementById("searchBox").value = saved;
+        }
+    };
 
     connect();
 </script>
